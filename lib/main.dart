@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:next_meet/Auth/login/login_screen.dart';
 import 'package:next_meet/Screens/home_screen.dart';
+import 'package:next_meet/Screens/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,12 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NextMeet',
+      debugShowCheckedModeBanner: false,
+      title: 'Eventora',
       theme: ThemeData(
         
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: HomeScreen(),
+      home:const SplashScreen(),
     );
   }
 }
