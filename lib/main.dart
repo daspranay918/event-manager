@@ -1,11 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:next_meet/Auth/login/login_screen.dart';
-import 'package:next_meet/Screens/home_screen.dart';
-import 'package:next_meet/Screens/splash_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:next_meet/core/router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Supabase.initialize(
+    url: 'https://wxlwwufbzohjzrxbccza.supabase.co',
+    anonKey: 'sb_publishable_xVSDy1xtv72DqkLdkyOr9Q_oibAdaK0',
+  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -14,15 +18,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Eventora',
       theme: ThemeData(
-        
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home:const SplashScreen(),
+      routerConfig: appRouter,
     );
   }
 }
-

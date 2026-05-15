@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:next_meet/Auth/login/login_screen.dart';
-import 'package:next_meet/Screens/home_screen.dart';
+import 'package:next_meet/Screens/login_screen.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

@@ -1,21 +1,33 @@
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Home Screen"),
-      ),
-      body: const Center(
-        child: Text("Welcome to the Home Screen!"),
+
+    return PopScope(
+
+      canPop: false,
+
+      child: Scaffold(
+
+        appBar: AppBar(
+          title: const Text("Home"),
+        ),
+
+        body: const Center(
+
+          child: Text(
+
+            "Welcome To Eventora",
+
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ),
     );
   }
