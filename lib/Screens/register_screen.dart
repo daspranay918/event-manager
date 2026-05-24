@@ -8,120 +8,107 @@ class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() =>
-      _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState
-    extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final fullNameController = TextEditingController();
 
-  final fullNameController =
-      TextEditingController();
+  final emailController = TextEditingController();
 
-  final emailController =
-      TextEditingController();
+  final phoneController = TextEditingController();
 
-  final phoneController =
-      TextEditingController();
+  final passwordController = TextEditingController();
 
-  final passwordController =
-      TextEditingController();
-
-  final confirmPasswordController =
-      TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
   bool isLoading = false;
+  bool isGoogleLoading = false;
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
   bool agreeTerms = false;
 
+  final AuthService _authService = AuthService();
+
   Future<void> register() async {
+    final fullName = fullNameController.text.trim();
 
-    final fullName =
-        fullNameController.text.trim();
+    final email = emailController.text.trim();
 
-    final email =
-        emailController.text.trim();
+    final phone = phoneController.text.trim();
 
-    final phone =
-        phoneController.text.trim();
+    final password = passwordController.text.trim();
 
-    final password =
-        passwordController.text.trim();
-
-    final confirmPassword =
-        confirmPasswordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
 
     if (fullName.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      return;
+    }
 
-        const SnackBar(
-          content: Text(
-            "Please fill all fields",
-          ),
-        ),
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email")),
+      );
+
+      return;
+    }
+
+    if (phone.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid phone number")),
+      );
+
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password must be at least 6 characters")),
       );
 
       return;
     }
 
     if (password != confirmPassword) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        const SnackBar(
-          content: Text(
-            "Passwords do not match",
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Passwords do not match")));
 
       return;
     }
 
     if (!agreeTerms) {
-
       showDialog(
         context: context,
 
         builder: (context) {
-
           return AlertDialog(
-
-            backgroundColor:
-                const Color(0xFF111827),
+            backgroundColor: const Color(0xFF111827),
 
             shape: RoundedRectangleBorder(
-              borderRadius:
-                  BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(18),
             ),
 
             title: const Row(
               children: [
-
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: Color(0xFFF6C453),
-                ),
+                Icon(Icons.warning_amber_rounded, color: Color(0xFFF6C453)),
 
                 SizedBox(width: 10),
 
                 Text(
                   "Terms Required",
 
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ],
             ),
@@ -137,9 +124,7 @@ class _RegisterScreenState
             ),
 
             actions: [
-
               TextButton(
-
                 onPressed: () {
                   Navigator.pop(context);
                 },
@@ -149,8 +134,7 @@ class _RegisterScreenState
 
                   style: TextStyle(
                     color: Color(0xFFF6C453),
-                    fontWeight:
-                        FontWeight.bold,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -163,12 +147,11 @@ class _RegisterScreenState
     }
 
     try {
-
       setState(() {
         isLoading = true;
       });
 
-      await AuthService().signUp(
+      await _authService.signUp(
         email: email,
         password: password,
         fullName: fullName,
@@ -176,510 +159,397 @@ class _RegisterScreenState
       );
 
       if (mounted) {
-
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-
-          const SnackBar(
-            content: Text(
-              "Account Created Successfully",
-            ),
-          ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Account Created Successfully")),
         );
 
         context.go('/home');
       }
-
     } catch (e) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        SnackBar(
-          content: Text(
-            e.toString(),
-          ),
-        ),
-      );
-
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
 
+  Future<void> continueWithGoogle() async {
+    try {
       setState(() {
-        isLoading = false;
+        isGoogleLoading = true;
       });
+
+      await _authService.continueWithGoogle(context);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGoogleLoading = false;
+        });
+      }
     }
   }
 
   @override
+  void dispose() {
+    fullNameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       resizeToAvoidBottomInset: false,
 
       body: Stack(
         children: [
-
           /// BACKGROUND
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(
-                  "assets/images/background2.jpeg",
-                ),
+                image: AssetImage("assets/images/background2.jpeg"),
                 fit: BoxFit.cover,
               ),
             ),
           ),
 
           /// OVERLAY
-          Container(
-            color: Colors.black
-                .withOpacity(0.84),
-          ),
+          Container(color: Colors.black.withOpacity(0.84)),
 
           SafeArea(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
 
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
 
-                children: [
+                  children: [
+                    /// TOP SECTION
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
-                  /// TOP SECTION
-                  Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                      children: [
+                        Image.asset("assets/images/logo.png", height: 78),
 
-                    children: [
+                        const SizedBox(height: 8),
 
-                      Image.asset(
-                        "assets/images/logo.png",
-                        height: 78,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      RichText(
-                        text: const TextSpan(
-                          children: [
-
-                            TextSpan(
-                              text: "Create ",
-
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight:
-                                    FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-
-                            TextSpan(
-                              text: "Account",
-
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight:
-                                    FontWeight.w700,
-                                color:
-                                    Color(0xFFF6C453),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      const Text(
-                        "Join Eventora and start creating\nunforgettable experiences.",
-
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  /// FULL NAME
-                  buildTextField(
-                    controller:
-                        fullNameController,
-                    hint: "Full Name",
-                    icon:
-                        Icons.person_outline,
-                  ),
-
-                  const SizedBox(height: 11),
-
-                  /// EMAIL
-                  buildTextField(
-                    controller:
-                        emailController,
-                    hint:
-                        "Email Address",
-                    icon:
-                        Icons.email_outlined,
-                  ),
-
-                  const SizedBox(height: 11),
-
-                  /// PHONE
-                  buildTextField(
-                    controller:
-                        phoneController,
-                    hint:
-                        "Phone Number",
-                    icon:
-                        Icons.phone_outlined,
-                  ),
-
-                  const SizedBox(height: 11),
-
-                  /// PASSWORD
-                  buildTextField(
-                    controller:
-                        passwordController,
-                    hint: "Password",
-                    icon:
-                        Icons.lock_outline,
-                    isPassword: true,
-                  ),
-
-                  const SizedBox(height: 11),
-
-                  /// CONFIRM PASSWORD
-                  buildTextField(
-                    controller:
-                        confirmPasswordController,
-                    hint:
-                        "Confirm Password",
-                    icon:
-                        Icons.lock_outline,
-                    isConfirmPassword:
-                        true,
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  /// TERMS
-                  Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .center,
-
-                    children: [
-
-                      GestureDetector(
-
-                        onTap: () {
-
-                          setState(() {
-                            agreeTerms =
-                                !agreeTerms;
-                          });
-                        },
-
-                        child: Container(
-
-                          height: 20,
-                          width: 20,
-
-                          decoration:
-                              BoxDecoration(
-                            borderRadius:
-                                BorderRadius
-                                    .circular(
-                              5,
-                            ),
-
-                            border: Border.all(
-                              color: Colors
-                                  .white38,
-                            ),
-
-                            color:
-                                agreeTerms
-                                    ? const Color(
-                                        0xFFF6C453,
-                                      )
-                                    : Colors
-                                        .transparent,
-                          ),
-
-                          child:
-                              agreeTerms
-                                  ? const Icon(
-                                      Icons
-                                          .check,
-
-                                      size: 14,
-
-                                      color:
-                                          Colors
-                                              .black,
-                                    )
-                                  : null,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        width: 9,
-                      ),
-
-                      Expanded(
-                        child: RichText(
-                          text:
-                              const TextSpan(
+                        RichText(
+                          text: const TextSpan(
                             children: [
-
                               TextSpan(
-                                text:
-                                    "I agree to the ",
+                                text: "Create ",
 
-                                style:
-                                    TextStyle(
-                                  color: Colors
-                                      .white70,
-                                  fontSize:
-                                      11,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
                                 ),
                               ),
 
                               TextSpan(
-                                text:
-                                    "Terms of Service",
+                                text: "Account",
 
-                                style:
-                                    TextStyle(
-                                  color: Color(
-                                    0xFFF6C453,
-                                  ),
-
-                                  fontSize:
-                                      11,
-                                ),
-                              ),
-
-                              TextSpan(
-                                text:
-                                    " and ",
-
-                                style:
-                                    TextStyle(
-                                  color: Colors
-                                      .white70,
-                                  fontSize:
-                                      11,
-                                ),
-                              ),
-
-                              TextSpan(
-                                text:
-                                    "Privacy Policy",
-
-                                style:
-                                    TextStyle(
-                                  color: Color(
-                                    0xFFF6C453,
-                                  ),
-
-                                  fontSize:
-                                      11,
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFF6C453),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
 
-                  const SizedBox(height: 16),
+                        const SizedBox(height: 10),
 
-                  /// BUTTON
-                  CustomButton(
-                    text:
-                        "Create Account",
-                    onTap: register,
-                    isLoading:
-                        isLoading,
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  /// DIVIDER
-                  Row(
-                    children: [
-
-                      Expanded(
-                        child: Container(
-                          height: 1,
-                          color:
-                              Colors.white12,
-                        ),
-                      ),
-
-                      const Padding(
-                        padding:
-                            EdgeInsets.symmetric(
-                          horizontal: 8,
-                        ),
-
-                        child: Text(
-                          "or sign up with",
+                        const Text(
+                          "Join Eventora and start creating\nunforgettable experiences.",
 
                           style: TextStyle(
-                            color:
-                                Colors.white60,
-                            fontSize: 10.5,
+                            color: Colors.white70,
+                            fontSize: 12,
+                            height: 1.4,
                           ),
                         ),
-                      ),
+                      ],
+                    ),
 
-                      Expanded(
-                        child: Container(
-                          height: 1,
-                          color:
-                              Colors.white12,
-                        ),
-                      ),
-                    ],
-                  ),
+                    const SizedBox(height: 24),
 
-                  const SizedBox(height: 12),
+                    /// FULL NAME
+                    buildTextField(
+                      controller: fullNameController,
+                      hint: "Full Name",
+                      icon: Icons.person_outline,
+                    ),
 
-                  /// SOCIAL BUTTONS
-                  Row(
-                    children: [
+                    const SizedBox(height: 11),
 
-                      /// GOOGLE
-                      Expanded(
-                        child:
-                            GestureDetector(
+                    /// EMAIL
+                    buildTextField(
+                      controller: emailController,
+                      hint: "Email Address",
+                      icon: Icons.email_outlined,
+                    ),
 
-                          onTap: () {},
+                    const SizedBox(height: 11),
 
-                          child:
-                              socialButton(
-                            image:
-                                "assets/images/google.png",
+                    /// PHONE
+                    buildTextField(
+                      controller: phoneController,
+                      hint: "Phone Number",
+                      icon: Icons.phone_outlined,
+                    ),
 
-                            text:
-                                "Google",
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 11),
 
-                      const SizedBox(width: 8),
+                    /// PASSWORD
+                    buildTextField(
+                      controller: passwordController,
+                      hint: "Password",
+                      icon: Icons.lock_outline,
+                      isPassword: true,
+                    ),
 
-                      /// FACEBOOK
-                      Expanded(
-                        child:
-                            socialButton(
-                          image:
-                              "assets/images/facebook.png",
+                    const SizedBox(height: 11),
 
-                          text:
-                              "Facebook",
-                        ),
-                      ),
+                    /// CONFIRM PASSWORD
+                    buildTextField(
+                      controller: confirmPasswordController,
+                      hint: "Confirm Password",
+                      icon: Icons.lock_outline,
+                      isConfirmPassword: true,
+                    ),
 
-                      const SizedBox(width: 8),
+                    const SizedBox(height: 14),
 
-                      /// APPLE
-                      Expanded(
-                        child:
-                            socialButton(
-                          image:
-                              "assets/images/apple.png",
+                    /// TERMS
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
 
-                          text:
-                              "Apple",
-                        ),
-                      ),
-                    ],
-                  ),
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              agreeTerms = !agreeTerms;
+                            });
+                          },
 
-                  const SizedBox(height: 10),
+                          child: Container(
+                            height: 20,
+                            width: 20,
 
-                  /// LOGIN
-                  Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(5),
 
-                    children: [
+                              border: Border.all(color: Colors.white38),
 
-                      const Text(
-                        "Already have an account?",
-
-                        style: TextStyle(
-                          color:
-                              Colors.white70,
-                          fontSize: 12.5,
-                        ),
-                      ),
-
-                      TextButton(
-
-                        onPressed: () {
-                          context.go(
-                              '/login');
-                        },
-
-                        style:
-                            TextButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(
-                            horizontal:
-                                5,
-                          ),
-
-                          minimumSize:
-                              const Size(
-                            0,
-                            0,
-                          ),
-
-                          tapTargetSize:
-                              MaterialTapTargetSize
-                                  .shrinkWrap,
-                        ),
-
-                        child: const Text(
-                          "Login",
-
-                          style: TextStyle(
-                            color: Color(
-                              0xFFF6C453,
+                              color: agreeTerms
+                                  ? const Color(0xFFF6C453)
+                                  : Colors.transparent,
                             ),
 
-                            fontWeight:
-                                FontWeight
-                                    .bold,
+                            child: agreeTerms
+                                ? const Icon(
+                                    Icons.check,
 
-                            fontSize:
-                                12.5,
+                                    size: 14,
+
+                                    color: Colors.black,
+                                  )
+                                : null,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
 
-                  const SizedBox(height: 42),
-                ],
+                        const SizedBox(width: 9),
+
+                        Expanded(
+                          child: RichText(
+                            text: const TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "I agree to the ",
+
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+
+                                TextSpan(
+                                  text: "Terms of Service",
+
+                                  style: TextStyle(
+                                    color: Color(0xFFF6C453),
+
+                                    fontSize: 11,
+                                  ),
+                                ),
+
+                                TextSpan(
+                                  text: " and ",
+
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+
+                                TextSpan(
+                                  text: "Privacy Policy",
+
+                                  style: TextStyle(
+                                    color: Color(0xFFF6C453),
+
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// BUTTON
+                    CustomButton(
+                      text: "Create Account",
+                      onTap: register,
+                      isLoading: isLoading,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// DIVIDER
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(height: 1, color: Colors.white12),
+                        ),
+
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+
+                          child: Text(
+                            "or sign up with",
+
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontSize: 10.5,
+                            ),
+                          ),
+                        ),
+
+                        Expanded(
+                          child: Container(height: 1, color: Colors.white12),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    /// SOCIAL BUTTONS
+                    Row(
+                      children: [
+                        /// GOOGLE
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: isGoogleLoading ? null : continueWithGoogle,
+
+                            child: socialButton(
+                              image: "assets/images/google.png",
+
+                              text: "Google",
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        /// FACEBOOK
+                        Expanded(
+                          child: socialButton(
+                            image: "assets/images/facebook.png",
+
+                            text: "Facebook",
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        /// APPLE
+                        Expanded(
+                          child: socialButton(
+                            image: "assets/images/apple.png",
+
+                            text: "Apple",
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    /// LOGIN
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+
+                      children: [
+                        const Text(
+                          "Already have an account?",
+
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12.5,
+                          ),
+                        ),
+
+                        TextButton(
+                          onPressed: () {
+                            context.go('/login');
+                          },
+
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
+
+                            minimumSize: const Size(0, 0),
+
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+
+                          child: const Text(
+                            "Login",
+
+                            style: TextStyle(
+                              color: Color(0xFFF6C453),
+
+                              fontWeight: FontWeight.bold,
+
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
           ),
@@ -689,9 +559,7 @@ class _RegisterScreenState
   }
 
   Widget buildTextField({
-
-    required TextEditingController
-        controller,
+    required TextEditingController controller,
 
     required String hint,
 
@@ -701,190 +569,118 @@ class _RegisterScreenState
 
     bool isConfirmPassword = false,
   }) {
-
     return Container(
-
       height: 50,
 
       decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
 
-        color: Colors.white
-            .withOpacity(0.04),
+        color: Colors.white.withOpacity(0.04),
 
-        border: Border.all(
-          color: Colors.white
-              .withOpacity(0.06),
-
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
       ),
 
       child: TextField(
-
         controller: controller,
 
-        obscureText:
-            isPassword
-                ? obscurePassword
-                : isConfirmPassword
-                    ? obscureConfirmPassword
-                    : false,
+        obscureText: isPassword
+            ? obscurePassword
+            : isConfirmPassword
+            ? obscureConfirmPassword
+            : false,
 
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 13),
 
-        cursorColor:
-            const Color(0xFFF6C453),
+        cursorColor: const Color(0xFFF6C453),
 
         decoration: InputDecoration(
-
           border: InputBorder.none,
-          enabledBorder:
-              InputBorder.none,
-          focusedBorder:
-              InputBorder.none,
-          disabledBorder:
-              InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
 
           hintText: hint,
 
           hintStyle: TextStyle(
-            color: Colors.white
-                .withOpacity(0.45),
+            color: Colors.white.withOpacity(0.45),
 
             fontSize: 12,
           ),
 
-          contentPadding:
-              const EdgeInsets.only(
-            top: 15,
-            left: 10,
-          ),
+          contentPadding: const EdgeInsets.only(top: 15, left: 10),
 
           prefixIcon: Padding(
-            padding:
-                const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(6),
 
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    const Color(0xFFF6C453)
-                        .withOpacity(
-                  0.14,
-                ),
+                color: const Color(0xFFF6C453).withOpacity(0.14),
 
-                borderRadius:
-                    BorderRadius
-                        .circular(10),
+                borderRadius: BorderRadius.circular(10),
               ),
 
-              child: Icon(
-                icon,
-
-                color:
-                    const Color(0xFFF6C453),
-
-                size: 22,
-              ),
+              child: Icon(icon, color: const Color(0xFFF6C453), size: 22),
             ),
           ),
 
-          prefixIconConstraints:
-              const BoxConstraints(
+          prefixIconConstraints: const BoxConstraints(
             minWidth: 54,
             minHeight: 54,
           ),
 
-          suffixIcon:
-              isPassword ||
-                      isConfirmPassword
+          suffixIcon: isPassword || isConfirmPassword
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      if (isPassword) {
+                        obscurePassword = !obscurePassword;
+                      }
 
-                  ? IconButton(
+                      if (isConfirmPassword) {
+                        obscureConfirmPassword = !obscureConfirmPassword;
+                      }
+                    });
+                  },
 
-                      onPressed: () {
+                  icon: Icon(
+                    isPassword
+                        ? obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined
+                        : obscureConfirmPassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
 
-                        setState(() {
+                    color: Colors.white60,
 
-                          if (isPassword) {
-                            obscurePassword =
-                                !obscurePassword;
-                          }
-
-                          if (isConfirmPassword) {
-                            obscureConfirmPassword =
-                                !obscureConfirmPassword;
-                          }
-                        });
-                      },
-
-                      icon: Icon(
-                        isPassword
-                            ? obscurePassword
-                                ? Icons
-                                    .visibility_outlined
-                                : Icons
-                                    .visibility_off_outlined
-                            : obscureConfirmPassword
-                                ? Icons
-                                    .visibility_outlined
-                                : Icons
-                                    .visibility_off_outlined,
-
-                        color:
-                            Colors.white60,
-
-                        size: 18,
-                      ),
-                    )
-
-                  : null,
+                    size: 18,
+                  ),
+                )
+              : null,
         ),
       ),
     );
   }
 
-  Widget socialButton({
-
-    required String image,
-
-    required String text,
-  }) {
-
+  Widget socialButton({required String image, required String text}) {
     return Container(
-
       height: 46,
 
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
 
       decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(13),
 
-        border: Border.all(
-          color: Colors.white10,
-        ),
+        border: Border.all(color: Colors.white10),
 
-        color: Colors.white
-            .withOpacity(0.03),
+        color: Colors.white.withOpacity(0.03),
       ),
 
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-
-          Image.asset(
-            image,
-            height: 16,
-          ),
+          Image.asset(image, height: 16),
 
           const SizedBox(width: 5),
 
@@ -894,8 +690,7 @@ class _RegisterScreenState
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 11,
-              fontWeight:
-                  FontWeight.w500,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

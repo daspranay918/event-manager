@@ -8,157 +8,144 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() =>
-      _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState
-    extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
 
-  final emailController =
-      TextEditingController();
-
-  final passwordController =
-      TextEditingController();
+  final passwordController = TextEditingController();
 
   bool isLoading = false;
+  bool isGoogleLoading = false;
+
   bool obscurePassword = true;
 
+  final AuthService _authService = AuthService();
+
   Future<void> login() async {
+    final email = emailController.text.trim();
 
-    final email =
-        emailController.text.trim();
+    final password = passwordController.text.trim();
 
-    final password =
-        passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please fill all fields")));
 
-    if (email.isEmpty ||
-        password.isEmpty) {
+      return;
+    }
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        const SnackBar(
-          content: Text(
-            "Please fill all fields",
-          ),
-        ),
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a valid email")),
       );
 
       return;
     }
 
     try {
-
       setState(() {
         isLoading = true;
       });
 
-      await AuthService().signIn(
-        email: email,
-        password: password,
-      );
+      await _authService.signIn(email: email, password: password);
 
       if (mounted) {
-
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-
-          const SnackBar(
-            content: Text(
-              "Login Successful",
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Login Successful")));
 
         context.go('/home');
       }
-
     } catch (e) {
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-
-        SnackBar(
-          content: Text(
-            e.toString(),
-          ),
-        ),
-      );
-
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
 
+  Future<void> continueWithGoogle() async {
+    try {
       setState(() {
-        isLoading = false;
+        isGoogleLoading = true;
       });
+
+      await _authService.continueWithGoogle(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGoogleLoading = false;
+        });
+      }
     }
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
       resizeToAvoidBottomInset: false,
 
       body: Stack(
         children: [
-
           /// BACKGROUND
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(
-                  "assets/images/background2.jpeg",
-                ),
+                image: AssetImage("assets/images/background2.jpeg"),
                 fit: BoxFit.cover,
               ),
             ),
           ),
 
           /// DARK OVERLAY
-          Container(
-            color: Colors.black
-                .withOpacity(0.84),
-          ),
+          Container(color: Colors.black.withOpacity(0.84)),
 
           SafeArea(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
 
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
 
                 children: [
-
                   /// TOP SECTION
                   Center(
                     child: Column(
                       children: [
-
-                        Image.asset(
-                          "assets/images/logo.png",
-                          height: 95,
-                        ),
+                        Image.asset("assets/images/logo.png", height: 95),
 
                         const SizedBox(height: 2),
 
                         RichText(
                           text: const TextSpan(
                             children: [
-
                               TextSpan(
                                 text: "Event",
 
                                 style: TextStyle(
                                   fontSize: 28,
-                                  fontWeight:
-                                      FontWeight.w700,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.white,
                                 ),
                               ),
@@ -168,10 +155,8 @@ class _LoginScreenState
 
                                 style: TextStyle(
                                   fontSize: 28,
-                                  fontWeight:
-                                      FontWeight.w700,
-                                  color:
-                                      Color(0xFFF6C453),
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFF6C453),
                                 ),
                               ),
                             ],
@@ -181,37 +166,26 @@ class _LoginScreenState
                         const SizedBox(height: 5),
 
                         Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment
-                                  .center,
+                          mainAxisAlignment: MainAxisAlignment.center,
 
                           children: [
-
                             Container(
                               width: 35,
                               height: 1,
-                              color:
-                                  const Color(
-                                0xFFF6C453,
-                              ),
+                              color: const Color(0xFFF6C453),
                             ),
 
                             const Padding(
-                              padding:
-                                  EdgeInsets.symmetric(
-                                horizontal: 8,
-                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 8),
 
                               child: Text(
                                 "WE PLAN • YOU CELEBRATE",
 
                                 style: TextStyle(
-                                  color:
-                                      Colors.white70,
+                                  color: Colors.white70,
                                   fontSize: 9,
                                   letterSpacing: 1,
-                                  fontWeight:
-                                      FontWeight.w500,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -219,10 +193,7 @@ class _LoginScreenState
                             Container(
                               width: 35,
                               height: 1,
-                              color:
-                                  const Color(
-                                0xFFF6C453,
-                              ),
+                              color: const Color(0xFFF6C453),
                             ),
                           ],
                         ),
@@ -232,8 +203,7 @@ class _LoginScreenState
                         const Text(
                           "All Types of Social, Private &\nCorporate Event Management",
 
-                          textAlign:
-                              TextAlign.center,
+                          textAlign: TextAlign.center,
 
                           style: TextStyle(
                             color: Colors.white60,
@@ -254,8 +224,7 @@ class _LoginScreenState
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
-                      fontWeight:
-                          FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
 
@@ -264,37 +233,29 @@ class _LoginScreenState
                   const Text(
                     "Login to continue",
 
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
 
                   const SizedBox(height: 16),
 
                   /// EMAIL FIELD
                   buildTextField(
-                    controller:
-                        emailController,
+                    controller: emailController,
 
-                    hint:
-                        "Email or Phone Number",
+                    hint: "Email or Phone Number",
 
-                    icon:
-                        Icons.person_outline,
+                    icon: Icons.person_outline,
                   ),
 
                   const SizedBox(height: 10),
 
                   /// PASSWORD FIELD
                   buildTextField(
-                    controller:
-                        passwordController,
+                    controller: passwordController,
 
                     hint: "Password",
 
-                    icon:
-                        Icons.lock_outline,
+                    icon: Icons.lock_outline,
 
                     isPassword: true,
                   ),
@@ -303,33 +264,24 @@ class _LoginScreenState
 
                   /// FORGOT PASSWORD
                   Align(
-                    alignment:
-                        Alignment.centerRight,
+                    alignment: Alignment.centerRight,
 
                     child: TextButton(
-
                       onPressed: () {},
 
-                      style:
-                          TextButton.styleFrom(
-                        padding:
-                            EdgeInsets.zero,
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
 
-                        minimumSize:
-                            const Size(0, 0),
+                        minimumSize: const Size(0, 0),
 
-                        tapTargetSize:
-                            MaterialTapTargetSize
-                                .shrinkWrap,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
 
                       child: const Text(
                         "Forgot Password?",
 
                         style: TextStyle(
-                          color: Color(
-                            0xFFF6C453,
-                          ),
+                          color: Color(0xFFF6C453),
 
                           fontSize: 11.5,
                         ),
@@ -343,8 +295,7 @@ class _LoginScreenState
                   CustomButton(
                     text: "Login",
                     onTap: login,
-                    isLoading:
-                        isLoading,
+                    isLoading: isLoading,
                   ),
 
                   const SizedBox(height: 14),
@@ -352,38 +303,25 @@ class _LoginScreenState
                   /// DIVIDER
                   Row(
                     children: [
-
                       Expanded(
-                        child: Container(
-                          height: 1,
-                          color:
-                              Colors.white12,
-                        ),
+                        child: Container(height: 1, color: Colors.white12),
                       ),
 
                       const Padding(
-                        padding:
-                            EdgeInsets.symmetric(
-                          horizontal: 8,
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
 
                         child: Text(
                           "or continue with",
 
                           style: TextStyle(
-                            color:
-                                Colors.white60,
+                            color: Colors.white60,
                             fontSize: 10.5,
                           ),
                         ),
                       ),
 
                       Expanded(
-                        child: Container(
-                          height: 1,
-                          color:
-                              Colors.white12,
-                        ),
+                        child: Container(height: 1, color: Colors.white12),
                       ),
                     ],
                   ),
@@ -393,21 +331,15 @@ class _LoginScreenState
                   /// SOCIAL BUTTONS
                   Row(
                     children: [
-
                       /// GOOGLE
                       Expanded(
-                        child:
-                            GestureDetector(
+                        child: GestureDetector(
+                          onTap: isGoogleLoading ? null : continueWithGoogle,
 
-                          onTap: () {},
+                          child: socialButton(
+                            image: "assets/images/google.png",
 
-                          child:
-                              socialButton(
-                            image:
-                                "assets/images/google.png",
-
-                            text:
-                                "Google",
+                            text: "Google",
                           ),
                         ),
                       ),
@@ -416,13 +348,10 @@ class _LoginScreenState
 
                       /// FACEBOOK
                       Expanded(
-                        child:
-                            socialButton(
-                          image:
-                              "assets/images/facebook.png",
+                        child: socialButton(
+                          image: "assets/images/facebook.png",
 
-                          text:
-                              "Facebook",
+                          text: "Facebook",
                         ),
                       ),
 
@@ -430,13 +359,10 @@ class _LoginScreenState
 
                       /// APPLE
                       Expanded(
-                        child:
-                            socialButton(
-                          image:
-                              "assets/images/apple.png",
+                        child: socialButton(
+                          image: "assets/images/apple.png",
 
-                          text:
-                              "Apple",
+                          text: "Apple",
                         ),
                       ),
                     ],
@@ -446,62 +372,37 @@ class _LoginScreenState
 
                   /// REGISTER
                   Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .center,
+                    mainAxisAlignment: MainAxisAlignment.center,
 
                     children: [
-
                       const Text(
                         "Don't have an account?",
 
-                        style: TextStyle(
-                          color:
-                              Colors.white70,
-                          fontSize: 12.5,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12.5),
                       ),
 
                       TextButton(
-
                         onPressed: () {
-                          context.go(
-                              '/register');
+                          context.go('/register');
                         },
 
-                        style:
-                            TextButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(
-                            horizontal:
-                                6,
-                          ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
 
-                          minimumSize:
-                              const Size(
-                            0,
-                            0,
-                          ),
+                          minimumSize: const Size(0, 0),
 
-                          tapTargetSize:
-                              MaterialTapTargetSize
-                                  .shrinkWrap,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
 
                         child: const Text(
                           "Sign Up",
 
                           style: TextStyle(
-                            color: Color(
-                              0xFFF6C453,
-                            ),
+                            color: Color(0xFFF6C453),
 
-                            fontWeight:
-                                FontWeight
-                                    .bold,
+                            fontWeight: FontWeight.bold,
 
-                            fontSize:
-                                12.5,
+                            fontSize: 12.5,
                           ),
                         ),
                       ),
@@ -519,9 +420,7 @@ class _LoginScreenState
   }
 
   Widget buildTextField({
-
-    required TextEditingController
-        controller,
+    required TextEditingController controller,
 
     required String hint,
 
@@ -529,173 +428,104 @@ class _LoginScreenState
 
     bool isPassword = false,
   }) {
-
     return Container(
-
       height: 51,
 
       decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
 
-        color: Colors.white
-            .withOpacity(0.04),
+        color: Colors.white.withOpacity(0.04),
 
-        border: Border.all(
-          color: Colors.white
-              .withOpacity(0.06),
-
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
       ),
 
       child: TextField(
-
         controller: controller,
 
-        obscureText:
-            isPassword
-                ? obscurePassword
-                : false,
+        obscureText: isPassword ? obscurePassword : false,
 
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 13,
-        ),
+        style: const TextStyle(color: Colors.white, fontSize: 13),
 
-        cursorColor:
-            const Color(0xFFF6C453),
+        cursorColor: const Color(0xFFF6C453),
 
         decoration: InputDecoration(
-
           border: InputBorder.none,
-          enabledBorder:
-              InputBorder.none,
-          focusedBorder:
-              InputBorder.none,
-          disabledBorder:
-              InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
 
           hintText: hint,
 
           hintStyle: TextStyle(
-            color: Colors.white
-                .withOpacity(0.45),
+            color: Colors.white.withOpacity(0.45),
 
             fontSize: 12,
           ),
 
-          contentPadding:
-              const EdgeInsets.only(
-            top: 16,
-            left: 10,
-          ),
+          contentPadding: const EdgeInsets.only(top: 16, left: 10),
 
           prefixIcon: Padding(
-            padding:
-                const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(6),
 
             child: Container(
               decoration: BoxDecoration(
-                color:
-                    const Color(0xFFF6C453)
-                        .withOpacity(
-                  0.14,
-                ),
+                color: const Color(0xFFF6C453).withOpacity(0.14),
 
-                borderRadius:
-                    BorderRadius
-                        .circular(10),
+                borderRadius: BorderRadius.circular(10),
               ),
 
-              child: Icon(
-                icon,
-
-                color:
-                    const Color(0xFFF6C453),
-
-                size: 22,
-              ),
+              child: Icon(icon, color: const Color(0xFFF6C453), size: 22),
             ),
           ),
 
-          prefixIconConstraints:
-              const BoxConstraints(
+          prefixIconConstraints: const BoxConstraints(
             minWidth: 54,
             minHeight: 54,
           ),
 
-          suffixIcon:
-              isPassword
+          suffixIcon: isPassword
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      obscurePassword = !obscurePassword;
+                    });
+                  },
 
-                  ? IconButton(
+                  icon: Icon(
+                    obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
 
-                      onPressed: () {
+                    color: Colors.white60,
 
-                        setState(() {
-                          obscurePassword =
-                              !obscurePassword;
-                        });
-                      },
-
-                      icon: Icon(
-                        obscurePassword
-                            ? Icons
-                                .visibility_outlined
-                            : Icons
-                                .visibility_off_outlined,
-
-                        color:
-                            Colors.white60,
-
-                        size: 18,
-                      ),
-                    )
-
-                  : null,
+                    size: 18,
+                  ),
+                )
+              : null,
         ),
       ),
     );
   }
 
-  Widget socialButton({
-
-    required String image,
-
-    required String text,
-  }) {
-
+  Widget socialButton({required String image, required String text}) {
     return Container(
-
       height: 46,
 
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
 
       decoration: BoxDecoration(
-        borderRadius:
-            BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(13),
 
-        border: Border.all(
-          color: Colors.white10,
-        ),
+        border: Border.all(color: Colors.white10),
 
-        color: Colors.white
-            .withOpacity(0.03),
+        color: Colors.white.withOpacity(0.03),
       ),
 
       child: Row(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
 
         children: [
-
-          Image.asset(
-            image,
-            height: 16,
-          ),
+          Image.asset(image, height: 16),
 
           const SizedBox(width: 5),
 
@@ -705,8 +535,7 @@ class _LoginScreenState
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 10.5,
-              fontWeight:
-                  FontWeight.w500,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
