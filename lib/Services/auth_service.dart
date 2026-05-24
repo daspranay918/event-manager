@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:next_meet/core/constants/app_constants.dart';
@@ -31,10 +32,10 @@ class AuthService {
     try {
       /// INITIALIZE GOOGLE
       await _googleSignIn.initialize(
-        serverClientId:
-            AppConstants.googleWebClientId,
-        clientId:
-            AppConstants.androidClindId,
+        serverClientId: AppConstants.googleWebClientId,
+        clientId: Platform.isAndroid
+            ? AppConstants.androidClindId
+            : AppConstants.iosClindId,
       );
 
       /// AUTHENTICATE USER
