@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
+// import 'package:next_meet/Screens/home_screen.dart';
+import 'package:next_meet/Screens/main_navigation_screen.dart';
 
-import '../screens/home_screen.dart';
+// import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/splash_screen.dart';
@@ -27,9 +29,14 @@ final GoRouter appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: '/home',
-      builder: (context, state) => const HomeScreen(),
+      path: '/navigation',
+      builder: (context, state) => const MainNavigationScreen(),
     ),
+
+    // GoRoute(
+    //   path: '/home',
+    //   builder: (context, state) => const HomeScreen()
+    // ),
 
   ],
 );

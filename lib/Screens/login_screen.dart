@@ -56,12 +56,10 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
         ).showSnackBar(const SnackBar(content: Text("Login Successful")));
 
-        context.go('/home');
+        context.go('/navigation');
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(e.toString())));
+      print(e);
     } finally {
       if (mounted) {
         setState(() {
@@ -119,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
 
           /// DARK OVERLAY
-          Container(color: Colors.black.withOpacity(0.84)),
+          Container(color: Colors.black.withValues(alpha: 0.84)),
 
           SafeArea(
             child: Padding(
@@ -151,8 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
 
                               TextSpan(
-                                text: "iva",
-
+                                text: "ora",
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w700,
@@ -434,9 +431,12 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
 
-        color: Colors.white.withOpacity(0.04),
+        color: Colors.white.withValues(alpha: 0.04),
 
-        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
       ),
 
       child: TextField(
@@ -449,6 +449,7 @@ class _LoginScreenState extends State<LoginScreen> {
         cursorColor: const Color(0xFFF6C453),
 
         decoration: InputDecoration(
+          filled: false,
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
@@ -457,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: hint,
 
           hintStyle: TextStyle(
-            color: Colors.white.withOpacity(0.45),
+            color: Colors.white.withValues(alpha: 0.45),
 
             fontSize: 12,
           ),
@@ -469,7 +470,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF6C453).withOpacity(0.14),
+                color: const Color(0xFFF6C453).withValues(alpha: 0.14),
 
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -518,7 +519,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         border: Border.all(color: Colors.white10),
 
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha:0.03),
       ),
 
       child: Row(

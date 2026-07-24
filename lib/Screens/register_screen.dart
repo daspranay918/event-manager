@@ -160,10 +160,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Account Created Successfully")),
+          const SnackBar(content: Text("Account Created Successfully. Please login.")),
         );
 
-        context.go('/home');
+        context.go('/login');
       }
     } catch (e) {
       ScaffoldMessenger.of(
@@ -673,7 +673,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
         border: Border.all(color: Colors.white10),
 
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha:0.03),
       ),
 
       child: Row(

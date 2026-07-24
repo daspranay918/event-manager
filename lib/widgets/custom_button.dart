@@ -34,7 +34,7 @@ class CustomButton extends StatelessWidget {
 
           boxShadow: [
             BoxShadow(
-              color: AppColors.primaryGold.withOpacity(0.35),
+              color: AppColors.primaryGold.withValues(alpha:0.35),
               blurRadius: 18,
               spreadRadius: 1,
             ),

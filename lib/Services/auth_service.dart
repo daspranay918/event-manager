@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:next_meet/Services/profile_service.dart';
 import 'package:next_meet/core/constants/app_constants.dart';
-import 'package:next_meet/screens/home_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final supabase = Supabase.instance.client;
@@ -12,6 +13,8 @@ class AuthService {
   /// GOOGLE SIGN IN INSTANCE
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
+  final ProfileService _profileService = ProfileService();
+
   /// REGISTER
   Future<AuthResponse> signUp({
     required String email,
@@ -19,12 +22,28 @@ class AuthService {
     required String fullName,
     required String phone,
   }) async {
-    return await supabase.auth.signUp(
+    final response = await supabase.auth.signUp(
       email: email,
       password: password,
-
       data: {'full_name': fullName, 'phone': phone},
     );
+
+    final user = response.user;
+
+    if (user != null) {
+      final exists = await _profileService.profileExists(user.id);
+
+      if (!exists) {
+        await _profileService.createProfile(
+          userId: user.id,
+          email: email,
+          fullName: fullName,
+          phone: phone,
+        );
+      }
+    }
+
+    return response;
   }
 
   /// GOOGLE LOGIN / SIGNUP
@@ -62,16 +81,25 @@ class AuthService {
         accessToken: authorization?.accessToken,
       );
 
+      // debugPrint("EMAIL: ${result.user?.email}");
+      // debugPrint("METADATA: ${result.user?.userMetadata}");
+
       /// CHECK USER
       if (result.user != null && result.session != null) {
-        if (context.mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
+        final user = result.user!;
 
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+        final exists = await _profileService.profileExists(user.id);
 
-            (route) => false,
+        if (!exists) {
+          await _profileService.createProfile(
+            userId: user.id,
+            email: user.email ?? '',
+            fullName: user.userMetadata?['full_name'] ?? 'User',
           );
+        }
+
+        if (context.mounted) {
+          context.go('/navigation');
         }
       } else {
         throw Exception("Google Sign In Failed");
