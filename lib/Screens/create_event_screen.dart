@@ -16,6 +16,8 @@ import 'package:next_meet/Services/storage_service.dart';
 import 'package:next_meet/models/event_draft.dart';
 import 'package:next_meet/providers/bottom_nav_provider.dart';
 import 'package:next_meet/providers/event_provider.dart';
+import 'package:next_meet/providers/events_provider.dart';
+import 'package:next_meet/providers/published_events_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -125,6 +127,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         creatorId: user.id,
         bannerImageUrl: bannerUrl,
       );
+      ref.invalidate(publishedEventsProvider); // delete the catch old data readthe new data from the database thats working because of this 
 
       ref.read(eventProvider.notifier).state = const EventDraft();
 

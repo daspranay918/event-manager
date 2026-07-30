@@ -24,7 +24,8 @@ final activeEventsProvider = Provider<List<EventModel>>((ref) {
 
     final end = _combineDateTime(event.endDate, event.endTime);
 
-    return now.isAfter(start) && now.isBefore(end);
+    return !now.isBefore(start) && !now.isAfter(end);
+    // now.isAfter(start) && now.isBefore(end);
   }).toList();
 });
 

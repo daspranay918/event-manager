@@ -11,13 +11,20 @@ class StorageService {
   }) async {
     final fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
 
+    print("1. Starting upload");
+
     final path = '$userId/$fileName';
 
     await _supabase.storage
         .from('event-banners')
         .upload(path, imageFile, fileOptions: const FileOptions(upsert: true));
 
+        print("2. Upload completed");
+        print(_supabase.auth.currentUser);
+
     final imageUrl = _supabase.storage.from('event-banners').getPublicUrl(path);
+
+    print("2. Upload completed");
 
     return imageUrl;
   }
