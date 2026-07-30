@@ -109,7 +109,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         throw Exception('User not logged in');
       }
 
-      final event = ref.read(eventProvider);
+      final event = ref.read(eventProvider); // updated data that was changed in eventDraft file
 
       if (event.bannerImage.isEmpty) {
         throw Exception('Banner image missing');

@@ -31,28 +31,31 @@ class Step1Visibility extends StatelessWidget {
 
         const SizedBox(height: 30),
 
-        RadioListTile<bool>(
-          value: false,
+        RadioGroup<bool>(
           groupValue: isPrivate,
-          title: const Text('Public Event'),
-          subtitle: const Text(
-            'Anyone can discover and join.',
-          ),
-          onChanged: (value) {
-            onChanged(value!);
+          onChanged: (bool? value) {
+            if (value != null) {
+              onChanged(value);
+            }
           },
-        ),
-
-        RadioListTile<bool>(
-          value: true,
-          groupValue: isPrivate,
-          title: const Text('Private Event'),
-          subtitle: const Text(
-            'Visible only to invited people.',
+          child: Column(
+            children: const [
+              RadioListTile<bool>(
+                value: false,
+                title: Text('Public Event'),
+                subtitle: Text(
+                  'Anyone can discover and join.',
+                ),
+              ),
+              RadioListTile<bool>(
+                value: true,
+                title: Text('Private Event'),
+                subtitle: Text(
+                  'Visible only to invited people.',
+                ),
+              ),
+            ],
           ),
-          onChanged: (value) {
-            onChanged(value!);
-          },
         ),
       ],
     );
