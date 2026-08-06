@@ -15,6 +15,8 @@ class AppColors {
   static const Color blue = Color(0xFF3A86FF);
   static const Color purple = Color(0xFF8B5CF6);
   static const Color orange = Color(0xFFFF9F0A);
+  static Color errorRed = Color(0xFFEF4444);
+  static Color successGreen = Color(0xFF22C55E);
 }
 
 class AppTheme {

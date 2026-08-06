@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:next_meet/core/theme.dart';
+import 'package:next_meet/providers/published_events_provider.dart';
 // import 'package:next_meet/providers/published_events_provider.dart';
 import 'package:next_meet/widgets/active_event_section.dart';
 import 'package:next_meet/widgets/home_header.dart';
@@ -18,36 +19,43 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                HomeHeader(),
-
-                SizedBox(height: 18),
-
-                HomeLiveBanner(),
-
-                SizedBox(height: 18),
-
-                HomeCategories(),
-
-                SizedBox(height: 24),
-
-                ActiveEventsSection(),
-
-                SizedBox(height: 24),
-
-                PastEventsSection(),
-
-                SizedBox(height: 24),
-
-                UpcomingEventsSection(),
-
-                SizedBox(height: 24),
-              ],
+        child: RefreshIndicator(
+          onRefresh: () async{
+            ref.invalidate(publishedEventsProvider);
+            await ref.read(publishedEventsProvider.future);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  HomeHeader(),
+          
+                  SizedBox(height: 18),
+          
+                  HomeLiveBanner(),
+          
+                  SizedBox(height: 18),
+          
+                  HomeCategories(),
+          
+                  SizedBox(height: 24),
+          
+                  ActiveEventsSection(),
+          
+                  SizedBox(height: 24),
+          
+                  PastEventsSection(),
+          
+                  SizedBox(height: 24),
+          
+                  UpcomingEventsSection(),
+          
+                  SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

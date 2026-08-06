@@ -4,7 +4,7 @@ import 'package:next_meet/Screens/create_event_screen.dart';
 import 'package:next_meet/Screens/explore_screen.dart';
 import 'package:next_meet/Screens/home_screen.dart';
 import 'package:next_meet/Screens/live_screen.dart';
-import 'package:next_meet/Screens/profile_screen.dart';
+import 'package:next_meet/Screens/Profile/profile_screen.dart';
 import 'package:next_meet/providers/bottom_nav_provider.dart';
 
 class MainNavigationScreen extends ConsumerWidget {
