@@ -1,4 +1,4 @@
-package com.example.next_meet
+package com.pranay.eventapp
 
 import io.flutter.embedding.android.FlutterActivity
 
