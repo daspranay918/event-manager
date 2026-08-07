@@ -17,3 +17,17 @@ final publishedEventsProvider =
     rethrow;
   }
 });
+
+final myEventsProvider = FutureProvider<List<EventModel>>((ref) async {
+  try {
+    final eventService = ref.watch(eventServiceProvider);
+
+    return await eventService.getMyEvents();
+  } catch (e, stack) {
+    debugPrint("===============");
+    debugPrint(e.toString());
+    debugPrint(stack.toString());
+    debugPrint("===============");
+    rethrow;
+  }
+});

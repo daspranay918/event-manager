@@ -16,7 +16,7 @@ import 'package:next_meet/Services/storage_service.dart';
 import 'package:next_meet/models/event_draft.dart';
 import 'package:next_meet/providers/bottom_nav_provider.dart';
 import 'package:next_meet/providers/event_provider.dart';
-import 'package:next_meet/providers/events_provider.dart';
+// import 'package:next_meet/providers/events_provider.dart';
 import 'package:next_meet/providers/published_events_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

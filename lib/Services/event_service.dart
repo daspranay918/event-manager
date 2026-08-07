@@ -75,4 +75,22 @@ class EventService {
         .map((event) => EventModel.fromJson(event as Map<String, dynamic>))
         .toList();
   }
+
+  Future<List<EventModel>> getMyEvents() async {
+    final user = _supabase.auth.currentUser;
+
+    if (user == null) {
+      return [];
+    }
+
+    final response = await _supabase
+        .from('events')
+        .select()
+        .eq('creator_id', user.id)
+        .order('created_at', ascending: false);
+
+    return (response as List)
+        .map((event) => EventModel.fromJson(event as Map<String, dynamic>))
+        .toList();
+  }
 }

@@ -80,18 +80,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 8),
 
-              const ProfileSection(
+              ProfileSection(
                 title: "Organizer",
                 children: [
                   ProfileTile(
                     icon: Icons.calendar_month_outlined,
                     title: "My Events",
+                    onTap: (){
+                      context.push('/my-events');
+                    },
                   ),
-                  ProfileTile(
+                  const ProfileTile(
                     icon: Icons.bar_chart_outlined,
                     title: "Analytics",
                   ),
-                  ProfileTile(
+                  const ProfileTile(
                     icon: Icons.star_border_rounded,
                     title: "Reviews",
                   ),
