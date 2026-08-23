@@ -185,32 +185,7 @@ class MyEventCard extends StatelessWidget {
 
                   Row(
                     children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 38,
-                          child: OutlinedButton.icon(
-                            onPressed: () {},
-                            icon: const Icon(Icons.edit_outlined, size: 16),
-                            label: const Text(
-                              "Edit",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.primaryGold,
-                              side: const BorderSide(
-                                color: AppColors.primaryGold,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ),
+                      
 
                       const SizedBox(width: 10),
 
