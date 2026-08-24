@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:next_meet/Screens/Profile/widgets/my_event_card.dart';
 import 'package:next_meet/Screens/Profile/widgets/my_events_header.dart';
 import 'package:next_meet/Screens/Profile/widgets/my_events_tab_bar.dart';
+import 'package:next_meet/Services/event_service.dart';
 import 'package:next_meet/models/event_model.dart';
 import 'package:next_meet/providers/published_events_provider.dart';
 
@@ -75,7 +76,7 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
                       default:
                         filteredEvents = events;
                     }
-                    if (filteredEvents.isEmpty){
+                    if (filteredEvents.isEmpty) {
                       return const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -118,15 +119,26 @@ class _MyEventsScreenState extends ConsumerState<MyEventsScreen> {
                         final event = filteredEvents[index];
 
                         return MyEventCard(
-                          image: event.bannerImage,
-                          title: event.title,
-                          category: event.category,
+                          event: event,
                           date:
-                              "${event.startDate.day}/${event.startDate.month}/${event.startDate.year} • ${event.startTime}",
+                              "${event.startDate.day}/${event.startDate.month}/${event.startDate.year} ${event.startTime}",
                           location: (event.city?.trim().isNotEmpty ?? false)
                               ? "${event.city}, ${event.country ?? ''}"
                               : "Location Unknown",
                           status: _getStatus(event),
+                          onDelete: () async {
+                            debugPrint("Delete button pressed");
+                            if (event.id == null) {
+                              return;
+                            }
+
+                            await EventService().deleteEvent(
+                              eventId: event.id!,
+                              imageUrl: event.bannerImage,
+                            );
+
+                            ref.invalidate(myEventsProvider);
+                          },
                         );
                       },
                     );

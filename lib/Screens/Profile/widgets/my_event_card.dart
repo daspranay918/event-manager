@@ -1,23 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:next_meet/core/theme.dart';
+import 'package:next_meet/models/event_model.dart';
 
 class MyEventCard extends StatelessWidget {
-  final String image;
-  final String title;
-  final String category;
+  final EventModel event;
   final String date;
   final String location;
   final String status;
+  final VoidCallback? onDelete;
 
   const MyEventCard({
     super.key,
-    required this.image,
-    required this.title,
-    required this.category,
+    required this.event,
     required this.date,
     required this.location,
-    required this.status,
+    required this.status, 
+    this.onDelete,
   });
 
   @override
@@ -67,7 +66,10 @@ class MyEventCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               child: SizedBox(
                 width: 118,
-                child: CachedNetworkImage(imageUrl: image, fit: BoxFit.cover),
+                child: CachedNetworkImage(
+                  imageUrl: event.bannerImage,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
 
@@ -82,7 +84,7 @@ class MyEventCard extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          title,
+                          event.title,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -120,7 +122,7 @@ class MyEventCard extends StatelessWidget {
                   const SizedBox(height: 5),
 
                   Text(
-                    category,
+                    event.category,
                     style: TextStyle(
                       color: AppColors.primaryGold,
                       fontSize: 15,
@@ -185,15 +187,13 @@ class MyEventCard extends StatelessWidget {
 
                   Row(
                     children: [
-                      
-
                       const SizedBox(width: 10),
 
                       Expanded(
                         child: SizedBox(
                           height: 38,
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: onDelete,
                             icon: const Icon(Icons.delete_outline, size: 16),
                             label: const FittedBox(
                               child: Text(
