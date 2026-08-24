@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class StorageService {
   final _supabase = Supabase.instance.client;
 
+  //new event upload
+
   Future<String> uploadEventBanner({
     required File imageFile,
     required String userId,
@@ -28,4 +30,16 @@ class StorageService {
 
     return imageUrl;
   }
+//Delete Event Banner Image
+  Future<void> deleteEventBanner(String imageUrl) async {
+  final uri = Uri.parse(imageUrl);
+
+  final path = uri.pathSegments
+      .sublist(uri.pathSegments.indexOf('event-banners') + 1)
+      .join('/');
+
+  await _supabase.storage
+      .from('event-banners')
+      .remove([path]);
+}
 }

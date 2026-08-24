@@ -1,3 +1,4 @@
+import 'package:next_meet/Services/storage_service.dart';
 import 'package:next_meet/models/event_draft.dart';
 import 'package:next_meet/models/event_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -92,5 +93,19 @@ class EventService {
     return (response as List)
         .map((event) => EventModel.fromJson(event as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<void> deleteEvent({
+    required String eventId,
+    required String imageUrl,
+  }) async {
+    print("DELETE START");
+    print("Event ID: $eventId");
+    print("Image URL: $imageUrl");
+    await StorageService().deleteEventBanner(imageUrl);
+    print("IMAGE DELETED");
+
+    await _supabase.from('events').delete().eq('id', eventId);
+     print("DATABASE DELETE DONE");
   }
 }
