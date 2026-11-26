@@ -6,7 +6,7 @@ DateTime _combineDateTime(DateTime date, String time) {
   final parts = time.split(':');
 
   final hour = int.tryParse(parts[0]) ?? 0;
-  final minute = int.tryParse(parts[1]) ?? 0;
+  final minute = parts.length > 1 ? int.tryParse(parts[1]) ?? 0 : 0;
 
   return DateTime(date.year, date.month, date.day, hour, minute);
 }

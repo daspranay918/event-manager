@@ -74,6 +74,9 @@ class Step6Location extends StatelessWidget {
 
         const SizedBox(height: 20),
 
+        if (!showOnlineFields && !showOfflineFields)
+          const Text('Choose an event mode to show venue or meeting fields.'),
+
         if (showOnlineFields) ...[
           TextField(
             controller: meetingLinkController,

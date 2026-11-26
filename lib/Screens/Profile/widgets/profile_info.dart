@@ -2,97 +2,65 @@ import 'package:flutter/material.dart';
 import 'package:next_meet/core/theme.dart';
 
 class ProfileInfo extends StatelessWidget {
-  const ProfileInfo({super.key});
+  const ProfileInfo({super.key, required this.profile, required this.onEdit});
+
+  final Map<String, dynamic> profile;
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
+    final avatar = (profile['avatar_url'] as String? ?? '').trim();
+    final summary = ['occupation', 'organization', 'location']
+        .map((key) => (profile[key] as String? ?? '').trim())
+        .where((value) => value.isNotEmpty)
+        .join(' · ');
+    final bio = (profile['bio'] as String? ?? '').trim();
+
     return Column(
       children: [
-
         Stack(
           clipBehavior: Clip.none,
           children: [
-
-            Container(
-              width: 110,
-              height: 110,
-              padding: const EdgeInsets.all(1.5),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primaryGold,
-                  width: 1.3,
-                ),
-              ),
-              child: const CircleAvatar(
-                backgroundImage: NetworkImage('https://i.pinimg.com/736x/7f/b6/05/7fb60538564ceef755080d388a5148ea.jpg'),
+            CircleAvatar(
+              radius: 55,
+              backgroundColor: AppColors.gold,
+              child: CircleAvatar(
+                radius: 53,
+                backgroundColor: AppColors.secondaryDark,
+                foregroundImage: avatar.isEmpty ? null : NetworkImage(avatar),
+                child: const Icon(Icons.person_outline, color: AppColors.gold, size: 44),
               ),
             ),
-
             Positioned(
-              right: -2,
-              bottom: 8,
-              child: Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryGold,
-                  shape: BoxShape.circle,
+              right: -4,
+              bottom: 0,
+              child: IconButton.filled(
+                tooltip: 'Edit profile photo',
+                onPressed: onEdit,
+                style: IconButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: Colors.black,
                 ),
-                child: const Icon(
-                  Icons.photo_camera_outlined,
-                  size: 18,
-                  color: Colors.black,
-                ),
+                icon: const Icon(Icons.photo_camera_outlined, size: 18),
               ),
             ),
           ],
         ),
-
         const SizedBox(height: 14),
-
-        const Text(
-          "Pranay Das",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
+        Text(
+          profile['full_name'] as String? ?? '',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
-
-        const SizedBox(height: 4),
-
-        const Text(
-          "Flutter Developer",
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 15,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-
-            Icon(
-              Icons.location_on_outlined,
-              size: 17,
-              color: AppColors.primaryGold,
-            ),
-
-            SizedBox(width: 4),
-
-            Text(
-              "Jaipur, Rajasthan",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+        if (summary.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(summary, textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.textGrey)),
+        ],
+        if (bio.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(bio, textAlign: TextAlign.center),
+        ],
       ],
     );
   }

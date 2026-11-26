@@ -1,3 +1,4 @@
+import 'package:next_meet/Screens/event_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:next_meet/models/event_model.dart';
@@ -12,7 +13,7 @@ class ActiveEventsSection extends ConsumerWidget {
     final List<EventModel> events = ref.watch(activeEventsProvider);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -30,9 +31,9 @@ class ActiveEventsSection extends ConsumerWidget {
                   ),
                 ),
               ),
-      
+
               const SizedBox(width: 8),
-      
+
               const Text(
                 "Active Events",
                 style: TextStyle(
@@ -41,39 +42,32 @@ class ActiveEventsSection extends ConsumerWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-      
               const Spacer(),
-      
               TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 0),
-                ),
-                child: const Row(
-                  children: [
-                    Text(
-                      "View All",
-                      style: TextStyle(
-                        color: Color(0xffF6C453),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w200,
+                onPressed: () => Navigator.of(context).push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(title: const Text('Active Events')),
+                      body: const Center(
+                        child: Text('All active events will appear here.'),
                       ),
                     ),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('View All', style: TextStyle(color: Color(0xFFF6C453))),
                     SizedBox(width: 4),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 16,
-                      color: Color(0xffF6C453),
-                    ),
+                    Icon(Icons.arrow_forward, size: 16, color: Color(0xFFF6C453)),
                   ],
                 ),
               ),
             ],
           ),
-      
+
           const SizedBox(height: 14),
-      
+
           if (events.isEmpty)
             const Center(
               child: Padding(
@@ -92,13 +86,14 @@ class ActiveEventsSection extends ConsumerWidget {
                 itemCount: events.length,
                 itemBuilder: (context, index) {
                   final event = events[index];
-      
+
                   final location =
                       (event.city?.trim().isNotEmpty ?? false)
                           ? "${event.city}, ${event.country ?? ""}"
                           : "Location Unknown";
-      
+
                   return ActiveEventCard(
+                    onTap: () => EventDetailsScreen.open(context, event, EventDetailStatus.live),
                     image: event.bannerImage,
                     title: event.title,
                     category: event.category,

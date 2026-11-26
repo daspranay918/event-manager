@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:next_meet/Services/storage_service.dart';
 import 'package:next_meet/models/event_draft.dart';
 import 'package:next_meet/models/event_model.dart';
@@ -11,6 +13,7 @@ class EventService {
     required String creatorId,
     required String bannerImageUrl,
   }) async {
+    final coordinates = await _venueCoordinates(event);
     await _supabase.from('events').insert({
       'creator_id': creatorId,
 
@@ -35,6 +38,8 @@ class EventService {
       'city': event.city,
       'state': event.state,
       'country': event.country,
+      'latitude': coordinates?.latitude,
+      'longitude': coordinates?.longitude,
 
       // Online
       'meeting_link': event.meetingLink,
@@ -63,6 +68,30 @@ class EventService {
       // Status
       'status': 'Published',
     });
+  }
+
+  Future<Location?> _venueCoordinates(EventDraft event) async {
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS) ||
+        event.eventMode.toLowerCase() == 'online' ||
+        event.address.trim().isEmpty) {
+      return null;
+    }
+
+    final address = [event.address, event.city, event.state, event.country]
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .join(', ');
+    try {
+      final results = await Geocoding()
+          .locationFromAddress(address)
+          .timeout(const Duration(seconds: 8));
+      return results.isEmpty ? null : results.first;
+    } catch (_) {
+      // A venue can still be published if the device geocoder is unavailable.
+      return null;
+    }
   }
 
   Future<List<EventModel>> getPublishedEvents() async {

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:next_meet/models/event_model.dart';
-import 'package:next_meet/services/event_service.dart';
+import 'package:next_meet/Services/event_service.dart';
 
 final eventServiceProvider = Provider<EventService>((ref) {
   return EventService();
