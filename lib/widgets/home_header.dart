@@ -39,7 +39,7 @@ class HomeHeader extends StatelessWidget {
                           ),
                         ),
                         TextSpan(
-                          text: "iva",
+                          text: "ora",
                           style: TextStyle(
                             color: AppColors.primaryGold,
                           ),

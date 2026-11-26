@@ -2,22 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:next_meet/core/theme.dart';
 
 class ProfileActions extends StatelessWidget {
-  const ProfileActions({super.key});
+  const ProfileActions({super.key, required this.onEdit});
+
+  final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: const [
+      children: [
         Expanded(
           child: _ActionButton(
             icon: Icons.edit_outlined,
             text: "Edit Profile",
+            onTap: onEdit,
           ),
         ),
 
-        SizedBox(width: 14),
+        const SizedBox(width: 14),
 
-        Expanded(
+        const Expanded(
           child: _ActionButton(
             icon: Icons.share_outlined,
             text: "Share Profile",
@@ -31,17 +34,19 @@ class ProfileActions extends StatelessWidget {
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String text;
+  final VoidCallback? onTap;
 
   const _ActionButton({
     required this.icon,
     required this.text,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
-      onTap: () {},
+      onTap: onTap ?? () {},
 
       child: Container(
         height: 43,

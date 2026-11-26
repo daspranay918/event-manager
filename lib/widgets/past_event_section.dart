@@ -1,3 +1,4 @@
+import 'package:next_meet/Screens/event_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:next_meet/models/event_model.dart';
@@ -32,31 +33,24 @@ class PastEventsSection extends ConsumerWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-
             const Spacer(),
-
             TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(0, 0),
-              ),
-              child: const Row(
-                children: [
-                  Text(
-                    "View All",
-                    style: TextStyle(
-                      color: Color(0xffF6C453),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (context) => Scaffold(
+                    appBar: AppBar(title: const Text('Past Events')),
+                    body: const Center(
+                      child: Text('All past events will appear here.'),
                     ),
                   ),
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('View All', style: TextStyle(color: Color(0xFFF6C453))),
                   SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 16,
-                    color: Color(0xffF6C453),
-                  ),
+                  Icon(Icons.arrow_forward, size: 16, color: Color(0xFFF6C453)),
                 ],
               ),
             ),
@@ -90,6 +84,7 @@ class PastEventsSection extends ConsumerWidget {
                         : "Location Unknown";
 
                 return PastEventCard(
+                  onTap: () => EventDetailsScreen.open(context, event, EventDetailStatus.past),
                   image: event.bannerImage,
                   day: event.startDate.day.toString(),
                   month: _month(event.startDate.month),

@@ -41,7 +41,7 @@ class MainNavigationScreen extends ConsumerWidget {
 
           BottomNavigationBarItem(
             icon: Icon(Icons.explore), 
-            label: 'Explore'),
+            label: 'Discover'),
 
           BottomNavigationBarItem(
             icon: Icon(Icons.add_circle),

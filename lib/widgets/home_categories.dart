@@ -7,7 +7,7 @@ class HomeCategories extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: EdgeInsets.zero,
       child: Column(
         children: [
           /// Header
@@ -30,32 +30,6 @@ class HomeCategories extends StatelessWidget {
                 ),
               ),
       
-              const Spacer(),
-      
-              InkWell(
-                onTap: () {},
-      
-                child: const Row(
-                  children: [
-                    Text(
-                      "View All",
-                      style: TextStyle(
-                        color: AppColors.primaryGold,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-      
-                    SizedBox(width: 4),
-      
-                    Icon(
-                      Icons.arrow_forward,
-                      color: AppColors.primaryGold,
-                      size: 18,
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
       

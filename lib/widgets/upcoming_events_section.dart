@@ -1,3 +1,7 @@
+import 'dart:math' as math;
+
+import 'package:next_meet/Screens/event_details_screen.dart';
+import 'package:next_meet/Screens/upcoming_events_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:next_meet/models/event_model.dart';
@@ -37,7 +41,11 @@ class UpcomingEventsSection extends ConsumerWidget {
             const Spacer(),
 
             TextButton(
-              onPressed: () {},
+              onPressed: () => Navigator.of(context).push<void>(
+                MaterialPageRoute<void>(
+                  builder: (_) => const UpcomingEventsScreen(),
+                ),
+              ),
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(0, 0),
@@ -80,7 +88,7 @@ class UpcomingEventsSection extends ConsumerWidget {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: events.length,
+            itemCount: math.min(events.length, 5),
             itemBuilder: (context, index) {
               final event = events[index];
 
@@ -90,6 +98,7 @@ class UpcomingEventsSection extends ConsumerWidget {
                       : "Location Unknown";
 
               return UpcomingEventCard(
+                onTap: () => EventDetailsScreen.open(context, event, EventDetailStatus.upcoming),
                 image: event.bannerImage,
                 day: event.startDate.day.toString(),
                 month: _month(event.startDate.month),

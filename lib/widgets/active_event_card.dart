@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:next_meet/core/theme.dart';
 
 class ActiveEventCard extends StatelessWidget {
+  final VoidCallback onTap;
   final String image;
   final String title;
   final String category;
@@ -12,6 +13,7 @@ class ActiveEventCard extends StatelessWidget {
 
   const ActiveEventCard({
     super.key,
+    required this.onTap,
     required this.image,
     required this.title,
     required this.category,
@@ -38,7 +40,7 @@ class ActiveEventCard extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {},
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

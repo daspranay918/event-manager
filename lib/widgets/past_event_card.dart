@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:next_meet/core/theme.dart';
 
 class PastEventCard extends StatelessWidget {
+  final VoidCallback onTap;
   final String image;
   final String day;
   final String month;
@@ -12,6 +13,7 @@ class PastEventCard extends StatelessWidget {
 
   const PastEventCard({
     super.key,
+    required this.onTap,
     required this.image,
     required this.day,
     required this.month,
@@ -35,7 +37,7 @@ class PastEventCard extends StatelessWidget {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {},
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:next_meet/core/theme.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,13 +12,10 @@ import 'package:next_meet/Screens/create-event_steps/step_3_date_time.dart';
 import 'package:next_meet/Screens/create-event_steps/step_4_registration.dart';
 import 'package:next_meet/Screens/create-event_steps/step_5_ticket.dart';
 import 'package:next_meet/Screens/create-event_steps/step_6_location.dart';
-import 'package:next_meet/Screens/create-event_steps/step_7_preview.dart';
 import 'package:next_meet/Services/event_service.dart';
 import 'package:next_meet/Services/storage_service.dart';
 import 'package:next_meet/models/event_draft.dart';
 import 'package:next_meet/providers/bottom_nav_provider.dart';
-import 'package:next_meet/providers/event_provider.dart';
-// import 'package:next_meet/providers/events_provider.dart';
 import 'package:next_meet/providers/published_events_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,8 +27,8 @@ class CreateEventScreen extends ConsumerStatefulWidget {
 }
 
 class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
-  int currentStep = 1;
   File? selectedBannerImage;
+  int _formVersion = 0;
 
   final ImagePicker _imagePicker = ImagePicker();
   final EventService _eventService = EventService();
@@ -91,15 +90,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     super.dispose();
   }
 
-  void previousStep() {
-    if (currentStep > 1) {
-      setState(() {
-        currentStep--;
-      });
-    }
-  }
-
-  Future<void> publishEvent() async {
+  Future<void> publishEvent(EventDraft event) async {
     try {
       setState(() {
         isPublishing = true;
@@ -109,12 +100,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
       if (user == null) {
         throw Exception('User not logged in');
-      }
-
-      final event = ref.read(eventProvider); // updated data that was changed in eventDraft file
-
-      if (event.bannerImage.isEmpty) {
-        throw Exception('Banner image missing');
       }
 
       final bannerUrl = await _storageService.uploadEventBanner(
@@ -127,24 +112,49 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         creatorId: user.id,
         bannerImageUrl: bannerUrl,
       );
-      ref.invalidate(publishedEventsProvider); // delete the catch old data readthe new data from the database thats working because of this 
-
-      ref.read(eventProvider.notifier).state = const EventDraft();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event Published Successfully')),
-        );
-
-      }
-      ref.read(bottomNavProvider.notifier).state = 0;
-
       if (!mounted) return;
+      ref.invalidate(publishedEventsProvider);
+      ref.invalidate(myEventsProvider);
+      setState(() {
+        _formVersion++;
+        selectedBannerImage = null;
+        isPrivate = false;
+        selectedCategory = null;
+        eventMode = '';
+        startDate = null;
+        endDate = null;
+        startTime = '';
+        endTime = '';
+        registrationType = '';
+        allowRegistrationAfterStart = false;
+        hasParticipantLimit = false;
+        ticketType = '';
+        selectedCurrency = 'INR';
+        selectedCountry = 'India';
+        selectedState = 'West Bengal';
+      });
+      for (final controller in [
+        titleController,
+        descriptionController,
+        maxParticipantsController,
+        ticketPriceController,
+        venueController,
+        addressController,
+        cityController,
+        meetingLinkController,
+      ]) {
+        controller.clear();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Event published successfully')),
+      );
+      ref.read(bottomNavProvider.notifier).state = 0;
       context.go('/navigation');
     } catch (e, stackTrace) {
       debugPrint('ERROR: $e');
       debugPrint('STACK: $stackTrace');
 
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -165,9 +175,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       initialDate: DateTime.now(),
     );
 
-    if (date != null) {
+    if (date != null && mounted) {
       setState(() {
         startDate = date;
+        if (endDate?.isBefore(date) ?? false) endDate = null;
       });
     }
   }
@@ -180,11 +191,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       initialDate: startDate ?? DateTime.now(),
     );
 
-    if (date != null) {
+    if (date != null && mounted) {
       setState(() {
         endDate = date;
       });
     }
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 
   Future<void> pickStartTime() async {
@@ -193,9 +210,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       initialTime: TimeOfDay.now(),
     );
 
-    if (time != null) {
+    if (time != null && mounted) {
       setState(() {
-        startTime = time.format(context);
+        startTime = _formatTime(time);
       });
     }
   }
@@ -206,9 +223,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       initialTime: TimeOfDay.now(),
     );
 
-    if (time != null) {
+    if (time != null && mounted) {
       setState(() {
-        endTime = time.format(context);
+        endTime = _formatTime(time);
       });
     }
   }
@@ -219,416 +236,263 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       imageQuality: 80,
     );
 
-    if (image == null) return;
+    if (image == null || !mounted) return;
 
     setState(() {
       selectedBannerImage = File(image.path);
     });
   }
 
-  void nextStep() {
-    if (currentStep == 7) {
-      publishEvent();
-      return;
-    }
-    if (currentStep == 1) {
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(isPrivate: isPrivate);
-
-      setState(() {
-        currentStep = 2;
-      });
-
-      return;
-    }
-
-    if (currentStep == 2) {
-      if (titleController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter event title')),
-        );
-        return;
-      }
-
-      if (descriptionController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter description')),
-        );
-        return;
-      }
-
-      if (selectedCategory == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select category')));
-        return;
-      }
-
-      if (selectedBannerImage == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select banner image')),
-        );
-        return;
-      }
-
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(
-            title: titleController.text.trim(),
-            description: descriptionController.text.trim(),
-            category: selectedCategory!,
-            bannerImage: selectedBannerImage!.path,
-          );
-
-      setState(() {
-        currentStep = 3;
-      });
-
+  void submit() {
+    if (isPublishing) return;
+    FocusScope.of(context).unfocus();
+    final offline = eventMode == 'Offline' || eventMode == 'Hybrid';
+    final online = eventMode == 'Online' || eventMode == 'Hybrid';
+    final limit = int.tryParse(maxParticipantsController.text.trim());
+    final price = double.tryParse(ticketPriceController.text.trim());
+    final sameDay = startDate != null && startDate == endDate;
+    final errors = <String>[
+      if (titleController.text.trim().isEmpty) 'Enter an event title.',
+      if (descriptionController.text.trim().isEmpty) 'Enter a description.',
+      if (selectedCategory == null) 'Select a category.',
+      if (selectedBannerImage == null) 'Add a cover image.',
+      if (eventMode.isEmpty) 'Select the event mode.',
+      if (startDate == null || endDate == null ||
+          startTime.isEmpty || endTime.isEmpty) 'Set the start and end date and time.'
+      else if (sameDay && endTime.compareTo(startTime) <= 0)
+        'The end time must be after the start time.',
+      if (registrationType.isEmpty) 'Select the registration type.',
+      if (hasParticipantLimit && (limit == null || limit <= 0))
+        'Enter a participant limit greater than zero.',
+      if (ticketType.isEmpty) 'Select a ticket type.',
+      if (ticketType == 'Paid' && (price == null || !price.isFinite || price <= 0))
+        'Enter a ticket price greater than zero.',
+      if (online && meetingLinkController.text.trim().isEmpty)
+        'Enter the meeting link.',
+      if (offline && (venueController.text.trim().isEmpty ||
+          addressController.text.trim().isEmpty || cityController.text.trim().isEmpty))
+        'Enter the venue, address, and city.',
+    ];
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(errors.first)));
       return;
     }
 
-    if (currentStep == 3) {
-      if (eventMode.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select event mode')),
-        );
-        return;
-      }
-
-      if (startDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select start date')),
-        );
-        return;
-      }
-
-      if (endDate == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select end date')));
-        return;
-      }
-
-      if (startTime.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select start time')),
-        );
-        return;
-      }
-
-      if (endTime.isEmpty) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Please select end time')));
-        return;
-      }
-
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(
-            eventMode: eventMode,
-            startDate: startDate,
-            endDate: endDate,
-            startTime: startTime,
-            endTime: endTime,
-          );
-
-      final event = ref.read(eventProvider);
-
-      debugPrint('Mode: ${event.eventMode}');
-      debugPrint('Start Date: ${event.startDate}');
-      debugPrint('End Date: ${event.endDate}');
-      debugPrint('Start Time: ${event.startTime}');
-      debugPrint('End Time: ${event.endTime}');
-
-      setState(() {
-        currentStep = 4;
-      });
-
-      return;
-    }
-    if (currentStep == 4) {
-      if (registrationType.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select registration type')),
-        );
-        return;
-      }
-
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(
-            registrationType: registrationType,
-            allowRegistrationAfterStart: allowRegistrationAfterStart,
-            maxParticipants: hasParticipantLimit
-                ? int.tryParse(maxParticipantsController.text.trim())
-                : null,
-          );
-
-      setState(() {
-        currentStep = 5;
-      });
-
-      return;
-    }
-    if (currentStep == 5) {
-      if (ticketType.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select ticket type')),
-        );
-        return;
-      }
-
-      double price = 0;
-
-      if (ticketType == 'Paid') {
-        if (ticketPriceController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter ticket price')),
-          );
-          return;
-        }
-
-        price = double.tryParse(ticketPriceController.text.trim()) ?? 0;
-      }
-
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(
-            ticketType: ticketType,
-            currency: selectedCurrency,
-            ticketPrice: price,
-          );
-
-      final event = ref.read(eventProvider);
-
-      debugPrint('Registration Type: ${event.registrationType}');
-      debugPrint('Ticket Type: ${event.ticketType}');
-      debugPrint('Ticket Price: ${event.ticketPrice}');
-
-      setState(() {
-        currentStep = 6;
-      });
-
-      return;
-    }
-    if (currentStep == 6) {
-      if (eventMode == 'Online' || eventMode == 'Hybrid') {
-        if (meetingLinkController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter meeting link')),
-          );
-          return;
-        }
-      }
-
-      if (eventMode == 'Offline' || eventMode == 'Hybrid') {
-        if (venueController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Please enter venue')));
-          return;
-        }
-
-        if (addressController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Please enter address')));
-          return;
-        }
-
-        if (cityController.text.trim().isEmpty) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Please enter city')));
-          return;
-        }
-      }
-
-      ref.read(eventProvider.notifier).state = ref
-          .read(eventProvider)
-          .copyWith(
-            venue: venueController.text.trim(),
-            address: addressController.text.trim(),
-            city: cityController.text.trim(),
-            state: selectedState,
-            country: selectedCountry,
-            meetingLink: meetingLinkController.text.trim(),
-          );
-
-      final event = ref.read(eventProvider);
-
-      debugPrint('Venue: ${event.venue}');
-      debugPrint('City: ${event.city}');
-      debugPrint('Country: ${event.country}');
-      debugPrint('Meeting Link: ${event.meetingLink}');
-
-      setState(() {
-        currentStep = 7;
-      });
-
-      return;
-    }
+    publishEvent(EventDraft(
+      isPrivate: isPrivate,
+      title: titleController.text.trim(),
+      description: descriptionController.text.trim(),
+      category: selectedCategory!,
+      bannerImage: selectedBannerImage!.path,
+      eventMode: eventMode,
+      startDate: startDate,
+      endDate: endDate,
+      startTime: startTime,
+      endTime: endTime,
+      registrationType: registrationType,
+      allowRegistrationAfterStart: allowRegistrationAfterStart,
+      hasParticipantLimit: hasParticipantLimit,
+      maxParticipants: hasParticipantLimit ? limit : null,
+      ticketType: ticketType,
+      currency: selectedCurrency,
+      ticketPrice: ticketType == 'Paid' ? price! : 0,
+      venue: offline ? venueController.text.trim() : '',
+      address: offline ? addressController.text.trim() : '',
+      city: offline ? cityController.text.trim() : '',
+      state: selectedState,
+      country: selectedCountry,
+      meetingLink: online ? meetingLinkController.text.trim() : '',
+    ));
   }
 
-  Widget buildCurrentStep() {
-    switch (currentStep) {
-      case 1:
-        return Step1Visibility(
-          isPrivate: isPrivate,
-          onChanged: (value) {
-            setState(() {
-              isPrivate = value;
-            });
-          },
-        );
-
-      case 2:
-        return Step2BasicInfo(
-          titleController: titleController,
-          descriptionController: descriptionController,
-          selectedCategory: selectedCategory,
-
-          selectedBannerImage: selectedBannerImage,
-
-          onBannerTap: pickBannerImage,
-
-          onCategoryChanged: (value) {
-            setState(() {
-              selectedCategory = value;
-            });
-          },
-        );
-
-      case 3:
-        return Step3DateTime(
-          eventMode: eventMode,
-          startDate: startDate,
-          endDate: endDate,
-          startTime: startTime,
-          endTime: endTime,
-          onEventModeChanged: (value) {
-            setState(() {
-              eventMode = value ?? '';
-            });
-          },
-          onSelectStartDate: pickStartDate,
-          onSelectEndDate: pickEndDate,
-          onSelectStartTime: pickStartTime,
-          onSelectEndTime: pickEndTime,
-        );
-      case 4:
-        return Step4Registration(
-          registrationType: registrationType,
-          allowRegistrationAfterStart: allowRegistrationAfterStart,
-          hasParticipantLimit: hasParticipantLimit,
-          maxParticipantsController: maxParticipantsController,
-          onRegistrationTypeChanged: (value) {
-            setState(() {
-              registrationType = value ?? '';
-            });
-          },
-          onAllowRegistrationChanged: (value) {
-            setState(() {
-              allowRegistrationAfterStart = value;
-            });
-          },
-          onParticipantLimitChanged: (value) {
-            setState(() {
-              hasParticipantLimit = value;
-            });
-          },
-        );
-      case 5:
-        return Step5Ticket(
-          ticketType: ticketType,
-          selectedCurrency: selectedCurrency,
-          ticketPriceController: ticketPriceController,
-          onTicketTypeChanged: (value) {
-            setState(() {
-              ticketType = value ?? '';
-            });
-          },
-          onCurrencyChanged: (value) {
-            setState(() {
-              selectedCurrency = value ?? 'INR';
-            });
-          },
-        );
-      case 6:
-        return Step6Location(
-          eventMode: eventMode,
-          venueController: venueController,
-          addressController: addressController,
-          cityController: cityController,
-          meetingLinkController: meetingLinkController,
-          selectedState: selectedState,
-          selectedCountry: selectedCountry,
-          onStateChanged: (value) {
-            setState(() {
-              selectedState = value ?? 'West Bengal';
-            });
-          },
-          onCountryChanged: (value) {
-            setState(() {
-              selectedCountry = value ?? 'India';
-            });
-          },
-        );
-      case 7:
-        return Step7Preview(event: ref.read(eventProvider));
-
-      default:
-        return const SizedBox();
-    }
+  Widget _section(IconData icon, Widget fields) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.gold, size: 23),
+          const SizedBox(height: 10),
+          fields,
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Event')),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Step $currentStep of 8',
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
-            Expanded(child: SingleChildScrollView(child: buildCurrentStep())),
-            Row(
-              children: [
-                if (currentStep > 1)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: previousStep,
-                      child: const Text('Back'),
+      appBar: AppBar(
+        centerTitle: false,
+        title: const Text('Create event'),
+      ),
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: IgnorePointer(
+              ignoring: isPublishing,
+              child: SingleChildScrollView(
+                key: ValueKey(_formVersion),
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _section(
+                      Icons.visibility_outlined,
+                      Step1Visibility(
+                        isPrivate: isPrivate,
+                        onChanged: (value) {
+                          setState(() {
+                            isPrivate = value;
+                          });
+                        },
+                      ),
                     ),
-                  ),
 
-                if (currentStep > 1) const SizedBox(width: 12),
+                    _section(
+                      Icons.edit_note,
+                      Step2BasicInfo(
+                        titleController: titleController,
+                        descriptionController: descriptionController,
+                        selectedCategory: selectedCategory,
+                        selectedBannerImage: selectedBannerImage,
+                        onBannerTap: pickBannerImage,
+                        onCategoryChanged: (value) {
+                          setState(() {
+                            selectedCategory = value;
+                          });
+                        },
+                      ),
+                    ),
 
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isPublishing ? null : nextStep,
-                    child: isPublishing
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(currentStep == 7 ? 'Publish Event' : 'Continue'),
-                  ),
+                    _section(
+                      Icons.calendar_month_outlined,
+                      Step3DateTime(
+                        eventMode: eventMode,
+                        startDate: startDate,
+                        endDate: endDate,
+                        startTime: startTime,
+                        endTime: endTime,
+                        onEventModeChanged: (value) {
+                          setState(() {
+                            eventMode = value ?? '';
+                          });
+                        },
+                        onSelectStartDate: pickStartDate,
+                        onSelectEndDate: pickEndDate,
+                        onSelectStartTime: pickStartTime,
+                        onSelectEndTime: pickEndTime,
+                      ),
+                    ),
+                    _section(
+                      Icons.people_outline,
+                      Step4Registration(
+                        registrationType: registrationType,
+                        allowRegistrationAfterStart: allowRegistrationAfterStart,
+                        hasParticipantLimit: hasParticipantLimit,
+                        maxParticipantsController: maxParticipantsController,
+                        onRegistrationTypeChanged: (value) {
+                          setState(() {
+                            registrationType = value ?? '';
+                          });
+                        },
+                        onAllowRegistrationChanged: (value) {
+                          setState(() {
+                            allowRegistrationAfterStart = value;
+                          });
+                        },
+                        onParticipantLimitChanged: (value) {
+                          setState(() {
+                            hasParticipantLimit = value;
+                          });
+                        },
+                      ),
+                    ),
+                    _section(
+                      Icons.confirmation_number_outlined,
+                      Step5Ticket(
+                        ticketType: ticketType,
+                        selectedCurrency: selectedCurrency,
+                        ticketPriceController: ticketPriceController,
+                        onTicketTypeChanged: (value) {
+                          setState(() {
+                            ticketType = value ?? '';
+                          });
+                        },
+                        onCurrencyChanged: (value) {
+                          setState(() {
+                            selectedCurrency = value ?? 'INR';
+                          });
+                        },
+                      ),
+                    ),
+                    _section(
+                      Icons.place_outlined,
+                      Step6Location(
+                        eventMode: eventMode,
+                        venueController: venueController,
+                        addressController: addressController,
+                        cityController: cityController,
+                        meetingLinkController: meetingLinkController,
+                        selectedState: selectedState,
+                        selectedCountry: selectedCountry,
+                        onStateChanged: (value) {
+                          setState(() {
+                            selectedState = value ?? 'West Bengal';
+                          });
+                        },
+                        onCountryChanged: (value) {
+                          setState(() {
+                            selectedCountry = value ?? 'India';
+                          });
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: isPublishing ? null : submit,
+                  icon: isPublishing
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.publish_outlined),
+                  label: Text(isPublishing ? 'Publishing…' : 'Publish event'),
+                  style: FilledButton.styleFrom(foregroundColor: Colors.black),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

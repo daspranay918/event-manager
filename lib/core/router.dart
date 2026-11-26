@@ -3,10 +3,10 @@ import 'package:next_meet/Screens/Profile/my_events_screen.dart';
 // import 'package:next_meet/Screens/home_screen.dart';
 import 'package:next_meet/Screens/main_navigation_screen.dart';
 
-// import '../screens/home_screen.dart';
-import '../screens/login_screen.dart';
-import '../screens/register_screen.dart';
-import '../screens/splash_screen.dart';
+// import '../Screens/home_screen.dart';
+import '../Screens/login_screen.dart';
+import '../Screens/register_screen.dart';
+import '../Screens/splash_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
